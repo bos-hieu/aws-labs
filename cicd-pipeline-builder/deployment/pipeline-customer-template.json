@@ -1,0 +1,61 @@
+{
+  "pipeline": {
+    "name": "update-customer-microservice",
+    "roleArn": "pipeline-role-arn",
+    "stages": [
+      {
+        "name": "Source",
+        "actions": [
+          {
+            "name": "SourceAction",
+            "actionTypeId": {
+              "category": "Source",
+              "owner": "AWS",
+              "provider": "CodeCommit",
+              "version": "1"
+            },
+            "configuration": {
+              "RepositoryName": "deployment",
+              "BranchName": "dev"
+            },
+            "outputArtifacts": [
+              {
+                "name": "SourceArtifact"
+              }
+            ],
+            "region": "us-east-1",
+            "runOrder": 1
+          }
+        ]
+      },
+      {
+        "name": "Deploy",
+        "actions": [
+          {
+            "name": "DeployAction",
+            "actionTypeId": {
+              "category": "Deploy",
+              "owner": "AWS",
+              "provider": "CodeDeployToECS",
+              "version": "1"
+            },
+            "configuration": {
+              "ApplicationName": "microservices",
+              "DeploymentGroupName": "microservices-customer",
+              "TaskDefinitionTemplateArtifact": "SourceArtifact",
+              "TaskDefinitionTemplatePath": "taskdef-customer.json",
+              "AppSpecTemplateArtifact": "SourceArtifact",
+              "AppSpecTemplatePath": "appspec-customer.yaml"
+            },
+            "region": "us-east-1",
+            "runOrder": 1
+          }
+        ]
+      }
+    ],
+     "artifactStore": {
+      "type": "S3",
+      "location": "s3-bucket"
+    }
+  }
+}
